@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        php-version: ['7.4.30', '8.0.20', '8.1.7']
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push prod image
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          tags: glefer/symfony-minimal-docker:${{ matrix.php-version }}
+          build-args: PHP_IMAGE=${{ matrix.php-version }}
+          target: prod
+      - name: Build and push dev image
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          tags: glefer/symfony-minimal-docker:${{ matrix.php-version }}-dev
+          build-args: PHP_IMAGE=${{ matrix.php-version }}
+          target: dev
+      - name: Build and push latest
+        if: ${{ matrix.php-version }} == '8.1.7'
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          tags: glefer/symfony-minimal-docker:latest
+          build-args: PHP_IMAGE=${{ matrix.php-version }}
