@@ -29,6 +29,8 @@ jobs:
           tags: glefer/symfony-minimal-docker:${{ matrix.php-version }}
           build-args: PHP_IMAGE=${{ matrix.php-version }}
           target: prod
+          cache-from: type=registry,ref=glefer/symfony-minimal-docker:${{ matrix.php-version }}
+          cache-to: type=inline
       - name: Build and push dev image
         uses: docker/build-push-action@v3
         with:
@@ -36,10 +38,14 @@ jobs:
           tags: glefer/symfony-minimal-docker:${{ matrix.php-version }}-dev
           build-args: PHP_IMAGE=${{ matrix.php-version }}
           target: dev
+          cache-from: type=registry,ref=glefer/symfony-minimal-docker:${{ matrix.php-version }}-dev
+          cache-to: type=inline
       - name: Build and push latest
-        if: ${{ matrix.php-version }} == '8.1.7'
+        if: matrix.php-version == '8.1.7'
         uses: docker/build-push-action@v3
         with:
           push: true
           tags: glefer/symfony-minimal-docker:latest
           build-args: PHP_IMAGE=${{ matrix.php-version }}
+          cache-from: type=registry,ref=glefer/symfony-minimal-docker:latest
+          cache-to: type=inline
